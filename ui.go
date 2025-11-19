@@ -110,7 +110,7 @@ var (
 			PaddingBottom(1)
 
 	sidebarTitleStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("21")). // Blue
+				Foreground(lipgloss.Color("3")). // Yellow
 				Align(lipgloss.Center).
 				PaddingBottom(1)
 
@@ -174,15 +174,13 @@ var (
 
 	promptWindowStyle = lipgloss.NewStyle().
 				Border(lipgloss.RoundedBorder()).
-				BorderForeground(lipgloss.Color("240")). // Dark gray
-				Padding(1, 2).
-				Height(5)
+				BorderForeground(lipgloss.Color("240")).
+				Padding(1, 2)
 
 	promptWindowStyleSelected = lipgloss.NewStyle().
 					Border(lipgloss.RoundedBorder()).
-					BorderForeground(lipgloss.Color("250")). // Light gray
-					Padding(1, 2).
-					Height(5)
+					BorderForeground(lipgloss.Color("250")).
+					Padding(1, 2)
 
 	resultPopupStyle = lipgloss.NewStyle().
 				Border(lipgloss.RoundedBorder()).
@@ -766,184 +764,125 @@ License:
 
 // calculatePromptWrappedLines calculates how the prompt text wraps and returns
 // the wrapped lines and the cursor's position in the wrapped lines
-func (m model) calculatePromptWrappedLines() ([]string, int, int) {
-	// Calculate available width (must match View calculation)
-	sidebarWidth := 28
-	spacing := 2
-	estimatedLogWindowWidth := m.width - sidebarWidth - spacing - 4
-	if estimatedLogWindowWidth < 50 {
-		estimatedLogWindowWidth = 50
-	}
-	availableWidth := estimatedLogWindowWidth - 6
-	if availableWidth < 10 {
-		availableWidth = 10
-	}
-
-	// Build the prompt line with cursor
-	var promptLine strings.Builder
-	promptLine.WriteString("> ")
-	if m.cursorPos >= len(m.textInput) {
-		promptLine.WriteString(m.textInput)
-		promptLine.WriteString("_")
-	} else {
-		beforeCursor := m.textInput[:m.cursorPos]
-		afterCursor := m.textInput[m.cursorPos:]
-		promptLine.WriteString(beforeCursor)
-		promptLine.WriteString("_")
-		promptLine.WriteString(afterCursor)
-	}
-
-	// Wrap the prompt line
-	wrappedLine := lipgloss.NewStyle().
-		Width(availableWidth).
-		Render(promptLine.String())
-	wrappedLineParts := strings.Split(wrappedLine, "\n")
-
-	// Calculate cursor position in wrapped lines
-	// We need to find which wrapped line contains the cursor
-	cursorLine := 0
-	cursorCol := 0
+func (m model) calculatePromptWrappedLines(availableWidth int) ([]string, int, int) {
 	promptPrefix := "> "
-	prefixLen := len(promptPrefix)
-
-	// Build text without cursor to calculate positions
-	var textWithoutCursor strings.Builder
-	textWithoutCursor.WriteString(promptPrefix)
-	textWithoutCursor.WriteString(m.textInput)
-	textWithoutCursorStr := textWithoutCursor.String()
-
-	// Wrap text without cursor to find line breaks
-	wrappedWithoutCursor := lipgloss.NewStyle().
-		Width(availableWidth).
-		Render(textWithoutCursorStr)
-	wrappedWithoutCursorParts := strings.Split(wrappedWithoutCursor, "\n")
-
-	// Find which line the cursor is on
-	targetPos := prefixLen + m.cursorPos
-	currentLineStart := 0
-	for i, line := range wrappedWithoutCursorParts {
-		lineDisplayLen := lipgloss.Width(line)
-		if targetPos >= currentLineStart && targetPos < currentLineStart+lineDisplayLen {
-			cursorLine = i
-			cursorCol = targetPos - currentLineStart
-			break
-		}
-		currentLineStart += lineDisplayLen
-		// Account for line break
-		if i < len(wrappedWithoutCursorParts)-1 {
-			currentLineStart += 0 // No extra offset needed
-		}
+	
+	// Build full text with prefix
+	fullText := promptPrefix + m.textInput
+	
+	// Wrap the full text
+	wrappedLines := wrapText(fullText, availableWidth)
+	
+	// Calculate cursor position: prefix length + cursor position in input
+	cursorCharPos := len(promptPrefix) + m.cursorPos
+	
+	// Find which line contains the cursor by wrapping text up to cursor position
+	textUpToCursor := fullText[:cursorCharPos]
+	wrappedUpToCursor := wrapText(textUpToCursor, availableWidth)
+	
+	// Cursor is on the last line of wrapped text up to cursor
+	cursorLine := len(wrappedUpToCursor) - 1
+	if cursorLine < 0 {
+		cursorLine = 0
 	}
-
-	// If cursor is beyond all lines, put it on the last line
-	if cursorLine >= len(wrappedLineParts) {
-		cursorLine = len(wrappedLineParts) - 1
-		if cursorLine < 0 {
-			cursorLine = 0
-		}
-		cursorCol = lipgloss.Width(wrappedLineParts[cursorLine])
+	
+	// Calculate column position on that line
+	cursorCol := 0
+	if len(wrappedUpToCursor) > 0 {
+		lastLine := wrappedUpToCursor[cursorLine]
+		cursorCol = lipgloss.Width(lastLine)
 	}
-
-	return wrappedLineParts, cursorLine, cursorCol
+	
+	return wrappedLines, cursorLine, cursorCol
 }
 
 // moveCursorUpDown moves the cursor up or down through wrapped lines
-func (m model) moveCursorUpDown(direction int, logWindowWidth int) (int, int) {
-	// Calculate available width
-	availableWidth := logWindowWidth - 6
-	if availableWidth < 10 {
-		availableWidth = 10
-	}
-
+func (m model) moveCursorUpDown(direction int, availableWidth int) (int, int) {
 	promptPrefix := "> "
 	fullText := promptPrefix + m.textInput
-
-	// Find current cursor line and column using the helper
-	_, currentWrappedLine, currentCol := m.calculatePromptWrappedLines()
-
-	// Wrap text without cursor to find line boundaries
-	wrappedText := lipgloss.NewStyle().
-		Width(availableWidth).
-		Render(fullText)
-	wrappedLines := strings.Split(wrappedText, "\n")
-
-	// Move to adjacent line
-	newWrappedLine := currentWrappedLine + direction
-	if newWrappedLine < 0 {
-		newWrappedLine = 0
+	
+	// Get current cursor position in wrapped lines
+	_, currentLine, currentCol := m.calculatePromptWrappedLines(availableWidth)
+	
+	// Wrap full text to get all lines
+	wrappedLines := wrapText(fullText, availableWidth)
+	
+	// Calculate target line
+	targetLine := currentLine + direction
+	if targetLine < 0 {
+		targetLine = 0
 	}
-	if newWrappedLine >= len(wrappedLines) {
-		newWrappedLine = len(wrappedLines) - 1
-		if newWrappedLine < 0 {
-			newWrappedLine = 0
+	if targetLine >= len(wrappedLines) {
+		targetLine = len(wrappedLines) - 1
+		if targetLine < 0 {
+			targetLine = 0
 		}
 	}
-
-	// Find character positions for line boundaries
-	// Find start of new line
-	newLineStartChar := len(promptPrefix)
-	if newWrappedLine > 0 {
-		// Binary search for the character position that starts this line
-		low := len(promptPrefix)
+	
+	// Find character position at target column on target line
+	// We need to find where this line starts and ends in the full text
+	targetLineStart := 0
+	if targetLine > 0 {
+		// Binary search for start of target line
+		low := 0
 		high := len(fullText)
 		for low < high {
 			mid := (low + high) / 2
-			testPrefix := fullText[:mid]
-			testWrapped := lipgloss.NewStyle().
-				Width(availableWidth).
-				Render(testPrefix)
-			testLines := strings.Split(testWrapped, "\n")
-			if len(testLines) > newWrappedLine+1 {
+			testText := fullText[:mid]
+			testWrapped := wrapText(testText, availableWidth)
+			if len(testWrapped) > targetLine {
 				high = mid
 			} else {
 				low = mid + 1
 			}
 		}
-		newLineStartChar = low
+		targetLineStart = low
 	}
-
-	// Find end of new line
-	newLineEndChar := len(fullText)
-	if newWrappedLine < len(wrappedLines)-1 {
-		low := newLineStartChar
+	
+	// Find end of target line
+	targetLineEnd := len(fullText)
+	if targetLine < len(wrappedLines)-1 {
+		low := targetLineStart
 		high := len(fullText)
 		for low < high {
 			mid := (low + high) / 2
-			testPrefix := fullText[:mid]
-			testWrapped := lipgloss.NewStyle().
-				Width(availableWidth).
-				Render(testPrefix)
-			testLines := strings.Split(testWrapped, "\n")
-			if len(testLines) > newWrappedLine+1 {
+			testText := fullText[:mid]
+			testWrapped := wrapText(testText, availableWidth)
+			if len(testWrapped) > targetLine+1 {
 				high = mid
 			} else {
 				low = mid + 1
 			}
 		}
-		newLineEndChar = low
+		targetLineEnd = low
 	}
-
-	// Calculate target column (maintain column, clamp to line length)
+	
+	// Find character position at target column on target line
+	targetLineText := fullText[targetLineStart:targetLineEnd]
+	targetLineWidth := lipgloss.Width(targetLineText)
+	
+	// Clamp column to line length
 	targetCol := currentCol
-	newLineText := fullText[newLineStartChar:newLineEndChar]
-	newLineDisplayWidth := lipgloss.Width(newLineText)
-	if targetCol > newLineDisplayWidth {
-		targetCol = newLineDisplayWidth
+	if targetCol > targetLineWidth {
+		targetCol = targetLineWidth
 	}
-
+	
 	// Find character position at target column
-	newCursorCharPos := newLineStartChar
-	for testPos := newLineStartChar; testPos <= newLineEndChar; testPos++ {
-		testPrefix := fullText[newLineStartChar:testPos]
-		if lipgloss.Width(testPrefix) >= targetCol {
-			newCursorCharPos = testPos
+	newCursorCharPos := targetLineStart
+	for pos := targetLineStart; pos < targetLineEnd; {
+		testText := fullText[targetLineStart:pos]
+		if lipgloss.Width(testText) >= targetCol {
+			newCursorCharPos = pos
 			break
 		}
+		// Advance by one rune
+		_, size := utf8.DecodeRune([]byte(fullText[pos:]))
+		pos += size
 	}
-	if newCursorCharPos > newLineEndChar {
-		newCursorCharPos = newLineEndChar
+	if newCursorCharPos > targetLineEnd {
+		newCursorCharPos = targetLineEnd
 	}
-
+	
 	// Convert to textInput cursor position
 	newCursorPos := newCursorCharPos - len(promptPrefix)
 	if newCursorPos < 0 {
@@ -952,94 +891,47 @@ func (m model) moveCursorUpDown(direction int, logWindowWidth int) (int, int) {
 	if newCursorPos > len(m.textInput) {
 		newCursorPos = len(m.textInput)
 	}
-
+	
 	// Calculate scroll to keep cursor visible
-	promptHeight := 5
+	promptHeight := 9
 	contentHeight := promptHeight - 4
-	maxVisibleLines := contentHeight - 1
+	maxVisibleLines := contentHeight
 	if maxVisibleLines < 1 {
 		maxVisibleLines = 1
 	}
-
-	// Recalculate wrapped lines with new cursor position to find its line
-	var newPromptLine strings.Builder
-	newPromptLine.WriteString("> ")
-	if newCursorPos >= len(m.textInput) {
-		newPromptLine.WriteString(m.textInput)
-		newPromptLine.WriteString("_")
-	} else {
-		newPromptLine.WriteString(m.textInput[:newCursorPos])
-		newPromptLine.WriteString("_")
-		newPromptLine.WriteString(m.textInput[newCursorPos:])
-	}
-	newWrappedPrompt := lipgloss.NewStyle().
-		Width(availableWidth).
-		Render(newPromptLine.String())
-	newWrappedLines := strings.Split(newWrappedPrompt, "\n")
-
-	// Find which line the cursor is on now
-	cursorWrappedLine := 0
-	newCursorCharPosInPrompt := len("> ") + newCursorPos
-	charPos := 0
-	for i := 0; i < len(newWrappedLines); i++ {
-		// Find character count for this line
-		lineStartChar := charPos
-		for testChar := charPos; testChar <= len(m.textInput)+len("> ")+1; testChar++ {
-			var testText strings.Builder
-			testText.WriteString("> ")
-			if newCursorPos < len(m.textInput) {
-				testText.WriteString(m.textInput[:newCursorPos])
-				testText.WriteString("_")
-				testText.WriteString(m.textInput[newCursorPos:])
-			} else {
-				testText.WriteString(m.textInput)
-				testText.WriteString("_")
-			}
-			testPrefix := testText.String()[:min(testChar, testText.Len())]
-			testWrapped := lipgloss.NewStyle().
-				Width(availableWidth).
-				Render(testPrefix)
-			testLines := strings.Split(testWrapped, "\n")
-			if len(testLines) > i+1 {
-				charPos = testChar
-				break
-			}
-		}
-		if newCursorCharPosInPrompt >= lineStartChar && newCursorCharPosInPrompt < charPos {
-			cursorWrappedLine = i
-			break
-		}
-	}
-
-	// Add error message lines if any
-	totalWrappedLines := len(newWrappedLines)
+	
+	// Create temporary model with new cursor position to calculate new cursor line
+	tempModel := m
+	tempModel.cursorPos = newCursorPos
+	_, newCursorLine, _ := tempModel.calculatePromptWrappedLines(availableWidth)
+	
+	// Add error message if any
+	totalLines := len(wrappedLines)
 	if m.errorMsg != "" {
-		errorWrapped := lipgloss.NewStyle().
-			Width(availableWidth).
-			Render(m.errorMsg)
-		totalWrappedLines += len(strings.Split(errorWrapped, "\n"))
+		errorWrapped := wrapText(m.errorMsg, availableWidth)
+		totalLines += len(errorWrapped)
 	}
-
-	maxScroll := totalWrappedLines - maxVisibleLines
+	
+	maxScroll := totalLines - maxVisibleLines
 	if maxScroll < 0 {
 		maxScroll = 0
 	}
-
+	
 	// Calculate scroll to keep cursor visible
 	newScrollOffset := m.promptScrollOffset
-	if cursorWrappedLine < newScrollOffset {
-		newScrollOffset = cursorWrappedLine
-	} else if cursorWrappedLine >= newScrollOffset+maxVisibleLines {
-		newScrollOffset = cursorWrappedLine - maxVisibleLines + 1
+	if newCursorLine < newScrollOffset {
+		newScrollOffset = newCursorLine
+	} else if newCursorLine >= newScrollOffset+maxVisibleLines {
+		newScrollOffset = newCursorLine - maxVisibleLines + 1
 	}
-
+	
 	if newScrollOffset < 0 {
 		newScrollOffset = 0
 	}
 	if newScrollOffset > maxScroll {
 		newScrollOffset = maxScroll
 	}
-
+	
 	return newCursorPos, newScrollOffset
 }
 
@@ -1048,6 +940,84 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// wrapText wraps text character by character, respecting ANSI escape sequences
+// If a character would overflow to the right, it moves to the next line
+// Never truncates - always shows all text
+func wrapText(text string, maxWidth int) []string {
+	if maxWidth <= 0 {
+		return []string{text}
+	}
+
+	var lines []string
+	var currentLine strings.Builder
+	currentLineWidth := 0
+	
+	textBytes := []byte(text)
+	i := 0
+	
+	for i < len(textBytes) {
+		// Check for ANSI escape sequence
+		if i+1 < len(textBytes) && textBytes[i] == '\033' && textBytes[i+1] == '[' {
+			ansiStart := i
+			i += 2
+			for i < len(textBytes) {
+				if textBytes[i] == 'm' || textBytes[i] == 'H' || textBytes[i] == 'J' || textBytes[i] == 'K' {
+					// Add ANSI code to current line (doesn't count toward width)
+					currentLine.Write(textBytes[ansiStart : i+1])
+					i++
+					break
+				}
+				i++
+			}
+			continue
+		}
+		
+		// Decode UTF-8 rune
+		r, size := utf8.DecodeRune(textBytes[i:])
+		if size == 0 {
+			i++
+			continue
+		}
+		
+		charWidth := lipgloss.Width(string(r))
+		
+		if r == '\n' {
+			// Explicit newline - start new line
+			if currentLine.Len() > 0 {
+				lines = append(lines, currentLine.String())
+				currentLine.Reset()
+				currentLineWidth = 0
+			} else {
+				// Empty line
+				lines = append(lines, "")
+			}
+		} else {
+			// Check if adding this character would overflow
+			if currentLineWidth+charWidth > maxWidth && currentLineWidth > 0 {
+				// Current line is full - start new line
+				lines = append(lines, currentLine.String())
+				currentLine.Reset()
+				currentLineWidth = 0
+			}
+			
+			// Add character to current line
+			currentLine.WriteRune(r)
+			currentLineWidth += charWidth
+		}
+		
+		i += size
+	}
+	
+	// Add last line (even if empty)
+	lines = append(lines, currentLine.String())
+	
+	if len(lines) == 0 {
+		return []string{""}
+	}
+	
+	return lines
 }
 
 // renderScrollBar renders a vertical scroll bar
@@ -1118,12 +1088,12 @@ func (m model) calculateLogMaxScroll() int {
 	if sidebarHeight < 15 {
 		sidebarHeight = 15
 	}
-	promptHeight := 5
+	promptHeight := 9
 	logHeight := sidebarHeight - promptHeight - 2
 	if logHeight < 10 {
 		logHeight = 10
 	}
-	contentHeight := logHeight - 2       // Account for border only (top + bottom)
+	contentHeight := logHeight - 2
 	maxVisibleLines := contentHeight - 1 // Allow 1 row margin from bottom
 	if maxVisibleLines < 1 {
 		maxVisibleLines = 1
@@ -1675,7 +1645,7 @@ func (m model) updateLogView(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selectedWindow = "log"
 			}
 			return m, nil
-		case "up", "k":
+		case "up":
 			// Scroll the currently selected window
 			if m.selectedWindow == "log" {
 				// Scroll log window
@@ -1690,12 +1660,16 @@ func (m model) updateLogView(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if logWindowWidth < 50 {
 					logWindowWidth = 50
 				}
-				newCursorPos, newScrollOffset := m.moveCursorUpDown(-1, logWindowWidth)
+				availableWidth := logWindowWidth - 6
+				if availableWidth < 10 {
+					availableWidth = 10
+				}
+				newCursorPos, newScrollOffset := m.moveCursorUpDown(-1, availableWidth)
 				m.cursorPos = newCursorPos
 				m.promptScrollOffset = newScrollOffset
 			}
 			return m, nil
-		case "down", "j":
+		case "down":
 			// Scroll the currently selected window
 			if m.selectedWindow == "log" {
 				// Scroll log window
@@ -1711,7 +1685,11 @@ func (m model) updateLogView(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if logWindowWidth < 50 {
 					logWindowWidth = 50
 				}
-				newCursorPos, newScrollOffset := m.moveCursorUpDown(1, logWindowWidth)
+				availableWidth := logWindowWidth - 6
+				if availableWidth < 10 {
+					availableWidth = 10
+				}
+				newCursorPos, newScrollOffset := m.moveCursorUpDown(1, availableWidth)
 				m.cursorPos = newCursorPos
 				m.promptScrollOffset = newScrollOffset
 			}
@@ -2416,18 +2394,17 @@ func (m model) View() string {
 			return centeredMenu
 		}
 
-		// Calculate window dimensions - 4 rows from top margin
+		// Calculate window dimensions - 2 rows from top margin
 		// Sidebar height should equal log window + prompt window (no spacing between them)
-		sidebarHeight := m.height - 4 // Full available height
+		sidebarHeight := m.height - 2 // Full available height (2 rows from top)
 		if sidebarHeight < 15 {
 			sidebarHeight = 15 // Minimum height
 		}
-		promptHeight := 5 // Fixed height for prompt window - never change this
+		promptHeight := 9
 		// Log height = sidebar height - prompt height - 2 (2 rows shorter)
 		logHeight := sidebarHeight - promptHeight - 2
 		if logHeight < 10 {
 			logHeight = 10
-			// Don't adjust prompt height - keep it fixed at 5
 		}
 
 		// Define sidebar and log window widths
@@ -2607,195 +2584,162 @@ func (m model) View() string {
 			Height(logHeight).
 			Render(logText)
 
-		// Build prompt window content with scrolling
-		// Build lines - text will wrap naturally within the window width
-		var promptContentLines []string
-		cursorChar := "_"
-
-		// Build the prompt line with cursor
-		var promptLine strings.Builder
-		promptLine.WriteString(promptSymbolStyle.Render("> "))
-		if m.cursorPos >= len(m.textInput) {
-			// Cursor at end
-			promptLine.WriteString(m.textInput)
-			promptLine.WriteString(cursorChar)
-		} else {
-			// Cursor in middle
-			beforeCursor := m.textInput[:m.cursorPos]
-			afterCursor := m.textInput[m.cursorPos:]
-			promptLine.WriteString(beforeCursor)
-			promptLine.WriteString(cursorChar)
-			promptLine.WriteString(afterCursor)
-		}
-
-		// The window will handle wrapping, but we need to account for it in scrolling
-		// For now, treat the prompt line as a single line (it will wrap in the window)
-		promptContentLines = append(promptContentLines, promptLine.String())
-
-		// Add error message lines if any
-		if m.errorMsg != "" {
-			errorLines := strings.Split(promptHelpStyle.Render(m.errorMsg), "\n")
-			promptContentLines = append(promptContentLines, errorLines...)
-		}
-
-		// Calculate how many lines the content will take when wrapped
-		// Available width = window width - border (2) - padding (4)
+		// Build prompt window content with proper word wrapping and scrolling
+		// Fixed window size: promptHeight = 5 (never changes)
+		// promptHeight is already declared above, just ensure it's 5
+		
+		// Calculate available width for text (window width - border - padding)
 		availableWidth := logWindowWidth - 6
 		if availableWidth < 10 {
 			availableWidth = 10
 		}
-
-		// Wrap each line and build all wrapped lines
-		var allWrappedLines []string
-		for _, line := range promptContentLines {
-			// Wrap this line to available width
-			wrappedLine := lipgloss.NewStyle().
-				Width(availableWidth).
-				Render(line)
-			// Split the wrapped line (may be multiple lines)
-			wrappedLineParts := strings.Split(wrappedLine, "\n")
-			// Ensure each wrapped line doesn't exceed available width
-			for _, part := range wrappedLineParts {
-				// Truncate if necessary to prevent overflow
-				partWidth := lipgloss.Width(part)
-				if partWidth > availableWidth {
-					// Truncate to exact width
-					truncated := lipgloss.NewStyle().
-						Width(availableWidth).
-						Render(part)
-					allWrappedLines = append(allWrappedLines, truncated)
-				} else {
-					allWrappedLines = append(allWrappedLines, part)
-				}
-			}
+		
+		// Build prompt text with prefix and cursor
+		promptPrefix := promptSymbolStyle.Render("> ")
+		var promptText strings.Builder
+		promptText.WriteString(promptPrefix)
+		
+		if m.cursorPos >= len(m.textInput) {
+			// Cursor at end
+			promptText.WriteString(m.textInput)
+			promptText.WriteString("_")
+		} else {
+			// Cursor in middle
+			promptText.WriteString(m.textInput[:m.cursorPos])
+			promptText.WriteString("_")
+			promptText.WriteString(m.textInput[m.cursorPos:])
 		}
-
-		// Calculate prompt scroll bounds
-		promptContentHeight := promptHeight - 4 // Account for border and padding
-		maxPromptVisibleLines := promptContentHeight - 1
+		
+		// Wrap the prompt text (includes prefix and cursor)
+		allWrappedLines := wrapText(promptText.String(), availableWidth)
+		
+		// Add error message if any
+		if m.errorMsg != "" {
+			errorWrapped := wrapText(promptHelpStyle.Render(m.errorMsg), availableWidth)
+			allWrappedLines = append(allWrappedLines, errorWrapped...)
+		}
+		
+		// Calculate scroll bounds
+		promptContentHeight := promptHeight - 4
+		maxPromptVisibleLines := promptContentHeight
 		if maxPromptVisibleLines < 1 {
 			maxPromptVisibleLines = 1
 		}
-
+		
 		totalPromptLines := len(allWrappedLines)
 		maxPromptScroll := totalPromptLines - maxPromptVisibleLines
 		if maxPromptScroll < 0 {
 			maxPromptScroll = 0
 		}
-
-		// Find which wrapped line the cursor is on
-		_, cursorWrappedLine, _ := m.calculatePromptWrappedLines()
-
+		
+		// Find cursor position in wrapped lines
+		_, cursorWrappedLine, _ := m.calculatePromptWrappedLines(availableWidth)
+		
 		// Auto-adjust scroll to keep cursor visible
 		promptScrollOffset := m.promptScrollOffset
 		if promptScrollOffset == 9999 {
-			// Special value set when typing - scroll to show cursor
-			promptScrollOffset = cursorWrappedLine - maxPromptVisibleLines + 1
-			if promptScrollOffset < 0 {
+			// Special value set when typing - auto-scroll to show cursor
+			// Always scroll to show the cursor line, positioning it optimally
+			if cursorWrappedLine < maxPromptVisibleLines {
+				// Cursor is in first few lines - show from top
 				promptScrollOffset = 0
-			}
-			if promptScrollOffset > maxPromptScroll {
-				promptScrollOffset = maxPromptScroll
+			} else {
+				// Cursor is further down - scroll to show cursor line
+				// Position cursor near bottom of visible area for better typing experience
+				promptScrollOffset = cursorWrappedLine - maxPromptVisibleLines + 1
 			}
 		} else {
-			// Ensure cursor is visible
+			// Ensure cursor is visible when moving with arrow keys
 			if cursorWrappedLine < promptScrollOffset {
-				// Cursor is above visible area, scroll up
+				// Cursor is above visible area - scroll up
 				promptScrollOffset = cursorWrappedLine
 			} else if cursorWrappedLine >= promptScrollOffset+maxPromptVisibleLines {
-				// Cursor is below visible area, scroll down
+				// Cursor is below visible area - scroll down
 				promptScrollOffset = cursorWrappedLine - maxPromptVisibleLines + 1
 			}
 		}
-
-		// Clamp prompt scroll offset
+		
+		// Clamp scroll offset
 		if promptScrollOffset > maxPromptScroll {
 			promptScrollOffset = maxPromptScroll
 		}
 		if promptScrollOffset < 0 {
 			promptScrollOffset = 0
 		}
-
-		// Get visible prompt lines based on scroll offset (vertical scrolling)
+		
+		// Get visible lines
 		promptStart := promptScrollOffset
 		promptEnd := promptStart + maxPromptVisibleLines
 		if promptEnd > totalPromptLines {
 			promptEnd = totalPromptLines
 		}
-
+		
+		// Build visible content - show all wrapped lines, never truncate
+		// Ensure we use ALL available lines so text can reach within 1 row of bottom
 		var visiblePromptContent strings.Builder
-		for i := promptStart; i < promptEnd; i++ {
+		linesWritten := 0
+		for i := promptStart; i < promptEnd && linesWritten < maxPromptVisibleLines; i++ {
 			if i < len(allWrappedLines) {
 				line := allWrappedLines[i]
-				// Ensure line doesn't exceed available width
+				// Lines are already wrapped to fit, just pad if needed
 				lineWidth := lipgloss.Width(line)
-				if lineWidth > availableWidth {
-					// Truncate to exact width
-					line = lipgloss.NewStyle().
-						Width(availableWidth).
-						Render(line)
-				} else {
-					// Pad to exact width to prevent any overflow
-					line = lipgloss.NewStyle().
-						Width(availableWidth).
-						Render(line)
+				if lineWidth < availableWidth {
+					// Pad with spaces to exact width
+					line = line + strings.Repeat(" ", availableWidth-lineWidth)
+				} else if lineWidth > availableWidth {
+					// This shouldn't happen with proper wrapping, but if it does, don't truncate
+					// Just show the line as-is (it will overflow but won't be lost)
+					// The wrapText function should prevent this, but this is a safety check
 				}
 				visiblePromptContent.WriteString(line)
+				if linesWritten < maxPromptVisibleLines-1 {
+					visiblePromptContent.WriteString("\n")
+				}
+				linesWritten++
+			} else {
+				// No more content, but we need to fill remaining lines
+				visiblePromptContent.WriteString(strings.Repeat(" ", availableWidth))
+				if linesWritten < maxPromptVisibleLines-1 {
+					visiblePromptContent.WriteString("\n")
+				}
+				linesWritten++
+			}
+		}
+		
+		// Ensure we have exactly maxPromptVisibleLines (fill remaining if needed)
+		for linesWritten < maxPromptVisibleLines {
+			if linesWritten > 0 {
 				visiblePromptContent.WriteString("\n")
 			}
+			visiblePromptContent.WriteString(strings.Repeat(" ", availableWidth))
+			linesWritten++
 		}
-
-		// Pad to ensure consistent height
-		promptText := visiblePromptContent.String()
-		promptLines := strings.Split(promptText, "\n")
-		// Remove trailing empty line if present
-		if len(promptLines) > 0 && promptLines[len(promptLines)-1] == "" {
+		
+		promptTextStr := visiblePromptContent.String()
+		
+		promptLines := strings.Split(promptTextStr, "\n")
+		for len(promptLines) > 0 && promptLines[len(promptLines)-1] == "" {
 			promptLines = promptLines[:len(promptLines)-1]
 		}
-		// Ensure all lines are exactly the right width
-		for i, line := range promptLines {
-			lineWidth := lipgloss.Width(line)
-			if lineWidth != availableWidth {
-				// Pad or truncate to exact width
-				promptLines[i] = lipgloss.NewStyle().
-					Width(availableWidth).
-					Render(line)
-			}
-		}
 		for len(promptLines) < maxPromptVisibleLines {
-			// Add empty lines that are exactly the right width
-			emptyLine := lipgloss.NewStyle().
-				Width(availableWidth).
-				Render("")
-			promptLines = append(promptLines, emptyLine)
+			promptLines = append(promptLines, strings.Repeat(" ", availableWidth))
 		}
-		promptText = strings.Join(promptLines, "\n")
-
-		// Create prompt window with appropriate border color based on selection
+		if len(promptLines) > maxPromptVisibleLines {
+			promptLines = promptLines[:maxPromptVisibleLines]
+		}
+		promptTextStr = strings.Join(promptLines, "\n")
+		
 		var promptStyle lipgloss.Style
 		if m.selectedWindow == "prompt" {
 			promptStyle = promptWindowStyleSelected
 		} else {
 			promptStyle = promptWindowStyle
 		}
-		// Final safety check: ensure promptText lines don't exceed available width
-		// This prevents any potential overflow from ANSI codes or special characters
-		finalPromptLines := strings.Split(promptText, "\n")
-		for i, line := range finalPromptLines {
-			lineWidth := lipgloss.Width(line)
-			if lineWidth > availableWidth {
-				// Truncate to exact width
-				finalPromptLines[i] = lipgloss.NewStyle().
-					Width(availableWidth).
-					Render(line)
-			}
-		}
-		promptText = strings.Join(finalPromptLines, "\n")
-
+		
 		promptWindow := promptStyle.
 			Width(logWindowWidth).
 			Height(promptHeight).
-			Render(promptText)
+			Render(promptTextStr)
 
 		// Stack log window and prompt window vertically
 		logAndPromptStack := lipgloss.JoinVertical(lipgloss.Left, logWindow, promptWindow)
@@ -2803,9 +2747,9 @@ func (m model) View() string {
 		// Combine sidebar with the stacked log and prompt windows horizontally
 		combinedWindows := lipgloss.JoinHorizontal(lipgloss.Top, sidebarWindow, strings.Repeat(" ", spacing), logAndPromptStack)
 
-		// Build the full layout with 4 rows spacing at top
+		// Build the full layout with 2 rows spacing at top
 		var fullContent strings.Builder
-		fullContent.WriteString(strings.Repeat("\n", 4)) // 4 rows from top
+		fullContent.WriteString(strings.Repeat("\n", 2)) // 2 rows from top
 		fullContent.WriteString(combinedWindows)
 
 		return fullContent.String()
