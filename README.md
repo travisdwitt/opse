@@ -3,15 +3,14 @@ An app for managing solo role-playing game logs using the [One Page Solo Engine]
 
 ## Note:
 This is still pretty buggy but it's still useful for quick solo sessions. Enjoy!
+<br>
+<img width="1624" height="1035" alt="image" src="https://github.com/user-attachments/assets/0d20a229-1e15-4e7c-942f-e5dd87d802a0" />
+
 
 ## Installation
    ```bash
    go mod tidy
-   ```
-   ```bash
    go build -o opse
-   ```
-   ```bash
    ./opse
    ```
 
@@ -57,4 +56,10 @@ better, please do (and send me a link so I can play too)
 
 ## Credits
 One Page Solo Engine was created by Karl Hendricks.
+
+If you just want a quick OPSE reference without using the other bells and whistles the app also
+includes the One Page Solo Engine v1.6 text, searchable by header. 
+<br>
+<img width="1624" height="1035" alt="image" src="https://github.com/user-attachments/assets/4f3c3454-800e-48d0-af1e-ce8f958cdfda" />
+
 
