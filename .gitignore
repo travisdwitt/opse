@@ -1,0 +1,27 @@
+# Binaries
+opse
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# Game log files
+*.yaml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
