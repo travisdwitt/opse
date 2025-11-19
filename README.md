@@ -1,6 +1,9 @@
 # OPSE
 An app for managing solo role-playing game logs using the [One Page Solo Engine](https://inflatablestudios.itch.io/one-page-solo-engine) rules.
 
+## Note:
+This is still pretty buggy but it's still useful for quick solo sessions. Enjoy!
+
 ## Installation
    ```bash
    go mod tidy
