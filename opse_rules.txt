@@ -1,0 +1,346 @@
+ONE PAGE SOLO ENGINE
+Version: 1.6	CC-BY-SA 4.0
+A minimal, all-in-one toolkit to play your favorite tabletop RPGs without a GM.
+
+HOW TO PLAY
+1	Create one or more characters using your chosen game system.
+2	Roll a starting PLOT HOOK and a RANDOM EVENT, then SET THE SCENE.
+3	Start asking the ORACLE questions.  Interpret the answers in context.
+4	Play the game to overcome the challenges of the scene.
+5	Use GM MOVES to move the action.
+6	SET THE SCENE for the next thing you want your character to do.
+
+USING PLAYING CARDS
+This system uses a deck of playing cards to inspire answers.  Look up the rank in the appropriate table and combine with the SUIT DOMAIN below to determine the answer.  When you draw a Joker, shuffle the deck and add a RANDOM EVENT.
+
+SUIT DOMAIN:
+Clubs – Physical (appearance, existence)
+Diamonds – Technical (mental, operation)
+Spades – Mystical (meaning, capability)
+Hearts – Social (personal, connection)
+
+
+OPTIONAL: USE ONLY CARDS
+When you would roll a d6, draw a card and use the rank divided by 2 (round down).  Discard Aces.
+
+OPTIONAL: USE ONLY DICE
+When you would draw a card, roll a d12 for the rank and a d4 for the suit.  On a 12, flip a coin to see if you use the Q or K.
+
+SET THE SCENE
+Describe where your character is and what they are trying to accomplish, then roll or choose a SCENE COMPLICATION.
+
+SCENE COMPLICATION (D6):
+1	Hostile forces oppose you
+2	An obstacle blocks your way
+3	Wouldn’t it suck if…
+4	An NPC acts suddenly
+5	All is not as is seems
+6	Things actually go as planned
+
+Roll 1d6, on a 5+, it is an ALTERED SCENE.
+
+ALTERED SCENE (D6):
+1	A major detail of the scene is enhanced or somehow worse
+2	The environment is different
+3	Unexpected NPCs are present
+4	Add a SCENE COMPLICATION
+5	Add a PACING MOVE
+6	Add a RANDOM EVENT
+
+ORACLE (YES/NO)
+When you need to ask a simple question, choose the likelihood and roll 2d6.
+
+Answer (d6)
+Likely	  Yes on 3+
+Even	  Yes on 4+
+Unlikely  Yes on 5+
+
+Mod (d6)
+1	but…
+2-5	
+6	and…
+
+ORACLE (HOW)
+When you need to know how big, good, strong, numerous, etc. something is.
+
+Answer (D6):
+1	Surprisingly lacking
+2	Less than expected
+3-4	About average
+5	More than expected
+6	Extraordinary
+
+GM MOVES
+When you need to advance the action, roll on the tables below and describe the results as the GM normally would.
+
+Use a PACING MOVE when there is a lull in the action, or you think “what now?”  Use a FAILURE MOVE to move things forward when the PCs fail a check.
+
+PACING MOVES (D6):
+1	Foreshadow Trouble
+2	Reveal a New Detail
+3	An NPC Takes Action
+4	Advance a Threat
+5	Advance a Plot
+6	Add a RANDOM EVENT to the scene
+
+FAILURE MOVES (D6):
+1	Cause Harm
+2	Put Someone in a Spot
+3	Offer a Choice
+4	Advance a Threat
+5	Reveal an Unwelcome Truth
+6	Foreshadow Trouble
+
+RANDOM EVENT
+When you need to create a random event, draw the following.
+
+What happens: ACTION FOCUS
+Involving: TOPIC FOCUS
+
+COMPLEX QUESTIONS
+When you need to ask an open-ended question, try to find the most appropriate ORACLE (FOCUS) to use.  If the question is not sufficiently answered, add results from a second ORACLE (FOCUS).
+
+ORACLE (FOCUS)
+When you have a broad question or need to know details about something, draw on one of the tables below.  Remember to apply the SUIT DOMAIN when interpreting the result.
+
+ACTION FOCUS (CARD):
+What does it do?
+2	Seek		9	Command
+3	Oppose		T	Take
+4	Communicate	J	Protect
+5	Move		Q	Assist
+6	Harm		K	Transform
+7	Create		A	Deceive
+8	Reveal			
+
+DETAIL FOCUS (CARD):
+What kind of thing is it?
+2	Small		9	Unsavory
+3	Large		T	Specialized
+4	Old		J	Unexpected
+5	New		Q	Exotic
+6	Mundane		K	Dignified
+7	Simple		A	Unique
+8	Complex			
+
+TOPIC FOCUS (CARD):
+What is this about?
+2	Current Need	9	Rumors
+3	Allies		T	A Plot Arc
+4	Community	J	Recent Events
+5	History		Q	Equipment
+6	Future Plans	K	A Faction
+7	Enemies		A	The PCs
+8	Knowledge			
+
+				
+
+ 
+ONE PAGE GENERATORS
+Version: 1.6	CC-BY-SA 4.0
+Content-neutral generators to aid your GM-less adventures in any setting.
+
+GENERIC GENERATOR
+Use this to generate towns, spaceships, factions, magic items, taverns, monsters, or anything else you can think of.
+
+What it does: ACTION FOCUS
+How it looks: DETAIL FOCUS
+How significant: ORACLE (HOW)
+
+PLOT HOOK GENERATOR
+Use this to generate plot hooks, quests, or missions for the PCs to follow.
+
+OBJECTIVE (D6):
+1	Eliminate a threat
+2	Learn the truth
+3	Recover something valuable
+4	Escort or deliver to safety
+5	Restore something broken
+6	Save an ally in peril
+
+ADVERSARIES (D6):
+1	A powerful organization
+2	Outlaws
+3	Guardians
+4	Local inhabitants
+5	Enemy horde or force
+6	A new or recurring villain
+
+REWARDS (D6):
+1	Money or valuables
+2	Money or valuables
+3	Knowledge and secrets
+4	Support of an ally
+5	Advance a plot arc
+6	A unique item of power
+
+NPC GENERATOR
+Use this to generate NPCs that may be encountered while playing.
+
+IDENTITY (CARD):
+2	Outlaw		9	Entertainer
+3	Drifter		T	Adherent
+4	Tradesman	J	Leader
+5	Commoner	Q	Mystic
+6	Soldier		K	Adventurer
+7	Merchant	A	Lord
+8	Specialist			
+
+GOAL (CARD):
+2	Obtain		9	Enrich Self
+3	Learn		T	Avenge
+4	Harm		J	Fulfill Duty
+5	Restore		Q	Escape
+6	Find		K	Create
+7	Travel		A	Serve
+8	Protect			
+
+NOTABLE FEATURE (D6):
+1	Unremarkable
+2	Notable nature
+3	Obvious physical trait
+4	Quirk or mannerism
+5	Unusual equipment
+6	Unexpected age or origin
+
+Draw a DETAIL FOCUS for the description of the notable feature.
+
+CURRENT SITUATION
+Attitude to PCs: ORACLE (HOW)
+Conversation: TOPIC FOCUS
+
+DUNGEON CRAWLER
+Use this when exploring a dangerous location like a typical dungeon.
+
+DUNGEON THEME:
+How it looks: DETAIL FOCUS
+How it is used: ACTION FOCUS
+
+The first area always has 3 exits.  As you explore, roll once on each table below to create the new area.
+
+LOCATION (D6):
+1	Typical area
+2	Transitional area
+3	Living area or meeting place
+4	Working or utility area
+5	Area with a special feature
+6	Location for a specialized purpose
+
+ENCOUNTER (D6):
+1-2	None
+3-4	Hostile enemies
+5	An obstacle blocks the way
+6	Unique NPC or adversary
+
+OBJECT (D6):
+1-2	Nothing, or mundane objects
+3	An interesting item or clue
+4	A useful tool, key, or device
+5	Something valuable
+6	Rare or special item
+
+TOTAL EXITS (D6):
+1-2	Dead end
+3-4	1 additional exit
+5-6	2 additional exits
+
+HEX CRAWLER
+Use this to generate maps of larger areas.  Whenever the characters enter a hex, generate the TERRAIN and CONTENTS of all surrounding hexes, then roll an EVENT for the current hex.
+
+REGION
+Each hex is part of a region.  Define the three terrain types for the starting region (common, uncommon, and rare).  New regions might be discovered later.
+
+TERRAIN (D6):
+1-2	Same as current hex
+3-4	Common terrain
+5	Uncommon terrain
+6	Rare terrain
+
+CONTENTS (D6):
+1-5	Nothing notable
+6	Roll a FEATURE
+
+FEATURES (D6):
+1	Notable structure
+2	Dangerous hazard
+3	A settlement
+4	Strange natural feature
+5	New region (set new terrain types)
+6	DUNGEON CRAWLER entrance
+
+EVENT (D6):
+1-4	None
+5-6	RANDOM EVENT then SET THE SCENE
+
+ 
+MORE INFORMATION
+One Page Solo Engine was designed to be incredibly concise and minimalistic, but still have all the essential tools required to run a game without a GM.  The first two pages of this document are all that are required to play.  I understand some people might want to know a bit more, though, so here are some notes.
+
+INTENDED AUDIENCE
+This is really meant for people who are already familiar with RPGs and playing them solo.  Most of the tools assume you have already encountered similar concepts in other products.  If you’re completely new to solo or GM-less gaming, check out some of the products in the Acknowledgements to get started.
+
+DESIGN PHILOSOPHY
+There are a great many excellent tools out there to run a solo RPG game.  I always found, however, that many of them were overly complicated.  You shouldn’t have to read 15 pages of rules and make 10 dice rolls just to determine what the guards in a room are doing.
+
+Also, many tools only provide part of what you need to actually play.  Some only answer questions, while others only provide narrative structure or generate random elements.  A complete oracle should do all these things. 
+
+One Page Solo Engine was designed to provide every tool needed to run a solo game using any game system while using as few words as humanly possible.
+
+GM MOVES
+Though the GM Moves section is highly inspired by PbtA games, the system will work with virtually any tabletop RPG. The reason the PbtA framework was chosen is that it gamifies the role of the GM with discrete moves that can fit in a table.
+
+How you use the GM Moves will depend on the game system you are playing.  If you’re playing a PbtA game, it will be obvious when to use them because PbtA is built around the concept of partial success.  If you aren’t, just use them when you want to move things along.
+
+If you need more information on how to use the individual GM Moves, check out any PbtA game such as Dungeon World, Uncharted Worlds, or many others.
+
+PACING MOVES
+Pacing Moves should be used to fill in the gaps during those times when the players would normally look to the GM to see what happens next.  They represent the little prompting and extra details that a GM usually adds.  Try using one whenever you want to move the action forward.
+
+FAILURE MOVES
+Failure Moves represent setbacks or partial successes.  Maybe the roll failed, but the character still gets part of what they wanted or all of it with a cost.  These moves keep the action moving during failures and can be used in virtually any RPG system instead of just saying “no that failed”.
+
+NON-PBTA GAMES
+When playing a Non-PbtA game, it is important to remember that not every failure should result in a GM Move. 
+
+Sometimes the Spot check just fails because there was nothing there.  GM Moves should be used when a roll fails and there are consequences for failure, or the action needs to pick up.  Checking the room for secret doors?  Probably not.  Climbing a cliff in the rain to escape group of cultists?  Definitely.
+
+THE POWER OF INTERPRETATION
+Some solo RPG tools contain dozens of tables with hundreds of entries each.  The problem with these is that they are either thematically tuned to a certain genre of game, or they are so specific the results just don’t make sense.
+
+When using the One Page Solo Engine, remember that the answers are meant to inspire an idea that makes sense in the context of your game.  The answer should have meaning, not just be a random detail.  The result may be surprising, but it should always be logical.
+
+Give all results meaning.  Embrace the unexpected.  Reject the nonsensical.
+
+USING A DECK OF CARDS
+Many people who try this system wonder why a deck of cards was chosen for randomization.  The reason is because a playing card carries more information than a die roll and the suits work well for applying a “domain” to the results.
+
+I’ve seen this used to great success in systems like World vs Hero and decided to apply it to a generic solo engine.  Instead of having a huge table with every adjective you can pull from the dictionary, you have a smaller table with more general words and a domain that they can apply to.  This results in more interpretation and less guesswork about how “divinely slippery” could possibly apply to your current situation.
+
+TIPS FOR BEST RESULTS
+*	Ask mostly yes/no questions
+*	Loose interpretations are okay
+*	Always go with what’s cool
+*	If it doesn’t make sense, try again
+*	Use GM Moves to drive the action
+*	Try group play with no GM, it’s great
+
+ACKNOWLEDGEMENTS
+One Page Solo Engine was created by taking the things I liked from other solo tools, stripping them down to the bare bones, and then adding in a bit of the process I use for my own games.  It would not be possible without inspiration from:
+*	Mythic (Tana Pigeon)
+*	World vs Hero (John Fiore)
+*	Conjecture, UNE (Zach Best)
+*	Dungeon World (Koebel, LaTorra)
+*	The Black Hack (David Black)
+*	Maze Rats (Ben Milton)
+*	The Lone Wolf Solo RPG community
+
+ABOUT
+Written by:
+    Karl Hendricks – Inflatable Studios
+    Email: support@inflatablestudios.dev
+    Reddit: u/archon1024
+Download at:
+    https://inflatablestudios.itch.io/
+License: 
+    CC-BY-SA 4.0
+    Free to use and adapt for your own works (even commercially) as long as you provide credit and share your changes.  See the link above for more details.

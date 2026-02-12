@@ -15,10 +15,6 @@ opse
 # Go workspace file
 go.work
 
-# Game log files
-*.md
-*.txt
-
 # IDE
 .idea/
 .vscode/
