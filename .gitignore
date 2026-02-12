@@ -16,7 +16,8 @@ opse
 go.work
 
 # Game log files
-*.yaml
+*.md
+*.txt
 
 # IDE
 .idea/
