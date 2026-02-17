@@ -139,8 +139,9 @@ var pageQuickRef = `KEYBOARD SHORTCUTS
   ?      Toggle this help     /weather    Weather
   Ctrl+S Save journal         /color      Random color
   Ctrl+R Saved rolls          /sound      Random sound
-  Ctrl+Q Quit                 /dir        Direction
-                              /shuffle    Reshuffle deck
+  Ctrl+P Portraits            /dir        Direction
+  Ctrl+Q Quit                 /shuffle    Reshuffle deck
+                              /portrait   Portrait browser
   Number shortcuts work       /scene      Set the Scene
   from the sidebar or
   log view (not while
@@ -404,10 +405,14 @@ ATMOSPHERE
 SCENE
   /scene           Same as Set the Scene [8].
 
-CHARACTER VOICE
+CHARACTER VOICE & PORTRAITS
   /char NAME TEXT   Add a log entry attributed to NAME.
                    Example: /char Elara I search the room.
                    Shows "HH:MM  Elara" instead of "User".
+  /portrait        Open the portrait browser (also Ctrl+P).
+                   Generate random portraits, save favorites
+                   with a name. Saved portraits display next
+                   to /char dialogue matching that name.
 
 SAVED ROLLS
   Ctrl+R           Open the saved rolls manager.

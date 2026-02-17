@@ -82,6 +82,9 @@ func parseEntries(body string) []Entry {
 				label = currentSource
 			}
 		}
+		if entryType == EntryNarrative && label != "" {
+			text = stripCharMarkdown(text, label)
+		}
 		entries = append(entries, Entry{
 			Timestamp: currentTs,
 			Type:      entryType,
@@ -104,6 +107,21 @@ func parseEntries(body string) []Entry {
 	flush()
 
 	return entries
+}
+
+// stripCharMarkdown removes portrait image tags and bold name prefixes
+// added by Render(), so the Markdown field stays as plain dialogue text.
+func stripCharMarkdown(text, label string) string {
+	// Strip leading ![Label](...)\n\n
+	if strings.HasPrefix(text, "![") {
+		if idx := strings.Index(text, ")\n\n"); idx >= 0 {
+			text = text[idx+3:]
+		}
+	}
+	// Strip leading **Label:**
+	prefix := "**" + label + ":** "
+	text = strings.TrimPrefix(text, prefix)
+	return text
 }
 
 func classifyBlockquote(text string) EntryType {

@@ -9,7 +9,7 @@ import (
 var allCommands = []string{
 	"roll", "r", "flip", "f", "draw", "card", "shuffle",
 	"dir", "direction", "weather", "w", "color", "sound", "scene",
-	"char",
+	"char", "portrait",
 }
 
 type AutocompleteModel struct {

@@ -16,6 +16,7 @@ type KeyMap struct {
 	OpenAdventure key.Binding
 	Save          key.Binding
 	SavedRolls    key.Binding
+	Portraits     key.Binding
 
 	OracleLikely   key.Binding
 	OracleEven     key.Binding
@@ -45,6 +46,7 @@ var DefaultKeys = KeyMap{
 	OpenAdventure: key.NewBinding(key.WithKeys("ctrl+o")),
 	Save:          key.NewBinding(key.WithKeys("ctrl+s")),
 	SavedRolls:    key.NewBinding(key.WithKeys("ctrl+r")),
+	Portraits:     key.NewBinding(key.WithKeys("ctrl+p")),
 
 	OracleLikely:   key.NewBinding(key.WithKeys("1")),
 	OracleEven:     key.NewBinding(key.WithKeys("2")),

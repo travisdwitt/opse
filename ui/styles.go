@@ -80,4 +80,8 @@ var (
 
 	HelpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("240"))
+
+	PortraitBorderStyle = lipgloss.NewStyle().
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(lipgloss.Color("62"))
 )

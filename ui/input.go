@@ -84,6 +84,7 @@ func (m *InputModel) Submit() tea.Msg {
 			"weather": true, "w": true,
 			"color": true, "sound": true,
 			"scene": true, "char": true,
+			"portrait": true, "portraits": true,
 		}
 		if known[cmd] {
 			return CommandMsg{Command: cmd, Args: parts[1:]}

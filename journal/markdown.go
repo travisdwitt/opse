@@ -227,3 +227,4 @@ func RenderDungeonTheme(r engine.DungeonThemeResult) string {
 		r.Looks.Draw.Card.String(), r.Looks.Entry, suitShort(r.Looks.Draw.Card),
 		r.Used.Draw.Card.String(), r.Used.Entry, suitShort(r.Used.Draw.Card))
 }
+

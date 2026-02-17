@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 )
 
 type FocusArea int
@@ -34,11 +35,15 @@ type AppModel struct {
 	deck            *engine.Deck
 	utilityDeck     *engine.UtilityDeck
 	savedRolls      *engine.SavedRollsConfig
-	keys            KeyMap
-	width           int
-	height          int
-	showHelp        bool
-	showSavedRolls  bool
+	savedPortraits  *engine.SavedPortraitsConfig
+	sessionConfig   *engine.SessionConfig
+	portraitBrowser     PortraitBrowserModel
+	keys                KeyMap
+	width               int
+	height              int
+	showHelp            bool
+	showSavedRolls      bool
+	showPortraitBrowser bool
 	showSaveConfirm bool
 	statusMsg       string
 	statusExpiry    time.Time
@@ -47,21 +52,25 @@ type AppModel struct {
 func NewApp(j *journal.Journal) AppModel {
 	rng := engine.NewRandomizer()
 	savedRolls, _ := engine.LoadSavedRolls()
+	savedPortraits, _ := engine.LoadSavedPortraits()
+	sessionConfig, _ := engine.LoadSessionConfig()
 	m := AppModel{
 		sidebar:         NewSidebar(),
 		logview:         NewLogView(),
 		input:           NewInput(),
 		help:            NewHelp(),
 		savedRollsModal: NewSavedRolls(savedRolls),
+		portraitBrowser: NewPortraitBrowser(savedPortraits, rng),
 		focus:           FocusInput,
 		journal:         j,
 		rng:             rng,
 		deck:            engine.NewDeck(rng),
 		utilityDeck:     engine.NewUtilityDeck(rng, false),
 		savedRolls:      savedRolls,
+		savedPortraits:  savedPortraits,
+		sessionConfig:   sessionConfig,
 		keys:            DefaultKeys,
 	}
-	m.loadExistingEntries()
 	return m
 }
 
@@ -70,9 +79,13 @@ func (m AppModel) Init() tea.Cmd { return nil }
 func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		firstLayout := m.width == 0
 		m.width = msg.Width
 		m.height = msg.Height
 		m.updateLayout()
+		if firstLayout {
+			m.loadExistingEntries()
+		}
 		return m, nil
 
 	case tea.KeyMsg:
@@ -98,6 +111,14 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.showSavedRolls = false
 				m.runSavedRoll(rollID)
 			}
+			return m, cmd
+		}
+		if m.showPortraitBrowser {
+			if key.Matches(msg, m.keys.Escape) && m.portraitBrowser.state == pbBrowsing {
+				m.showPortraitBrowser = false
+				return m, nil
+			}
+			cmd := m.portraitBrowser.Update(msg)
 			return m, cmd
 		}
 		if m.showHelp {
@@ -137,6 +158,11 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, m.keys.SavedRolls) {
 			m.showSavedRolls = true
 			m.savedRollsModal.SetConfig(m.savedRolls)
+			return m, nil
+		}
+		if key.Matches(msg, m.keys.Portraits) {
+			m.showPortraitBrowser = true
+			m.portraitBrowser.SetConfig(m.savedPortraits)
 			return m, nil
 		}
 		if key.Matches(msg, m.keys.Help) && m.focus != FocusInput {
@@ -501,6 +527,11 @@ func (m *AppModel) runCommand(cmd CommandMsg) {
 		m.runAction("set_scene")
 		return
 
+	case "portrait", "portraits":
+		m.showPortraitBrowser = true
+		m.portraitBrowser.SetConfig(m.savedPortraits)
+		return
+
 	case "char":
 		if len(cmd.Args) < 2 {
 			return
@@ -524,7 +555,7 @@ func (m *AppModel) runCommand(cmd CommandMsg) {
 		m.journal.AddEntry(journal.Entry{
 			Timestamp: now, Type: journal.EntryNarrative, Label: name, Markdown: text,
 		})
-		m.refreshLog(text, now, name)
+		m.refreshLog(m.renderCharDialogue(name, text), now, name)
 		return
 
 	}
@@ -538,6 +569,27 @@ func (m *AppModel) addNarrative(text string) {
 	})
 	m.refreshLog(text, now, "User")
 	m.journal.Save()
+}
+
+func (m *AppModel) renderCharDialogue(name, text string) string {
+	if !m.sessionConfig.PortraitsEnabled || !SupportsPortraits() {
+		return text
+	}
+
+	var portrait string
+	if saved := m.savedPortraits.FindByName(name); saved != nil {
+		img := engine.RenderPortraitImage(saved.Params)
+		portrait = PortraitBorderStyle.Render(RenderPortraitArt(img))
+	} else {
+		portrait = RenderEmptyPortraitBox()
+	}
+
+	textWidth := m.logview.viewport.Width - PortraitTotalWidth() - 1
+	if textWidth < 15 {
+		return text
+	}
+	wrapped := ansi.Wrap(text, textWidth, "")
+	return lipgloss.JoinHorizontal(lipgloss.Top, portrait, " ", wrapped)
 }
 
 func (m *AppModel) refreshLog(newTUIEntry string, ts time.Time, source string) {
@@ -574,7 +626,11 @@ func (m *AppModel) loadExistingEntries() {
 			entry = header + "\n"
 		}
 		if e.Type == journal.EntryNarrative {
-			entry += e.Markdown
+			if e.Label != "" {
+				entry += m.renderCharDialogue(e.Label, e.Markdown)
+			} else {
+				entry += e.Markdown
+			}
 		} else {
 			entry += renderLoadedBlockquote(e.Markdown)
 		}
@@ -643,6 +699,9 @@ func (m AppModel) View() string {
 	if m.showSavedRolls {
 		return m.savedRollsModal.View(m.width, m.height)
 	}
+	if m.showPortraitBrowser {
+		return m.portraitBrowser.View(m.width, m.height)
+	}
 	if m.showHelp {
 		return m.help.View(m.width, m.height)
 	}
@@ -687,7 +746,7 @@ func (m AppModel) View() string {
 		helpBar = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Bold(true).Render(m.statusMsg)
 	} else {
 		m.statusMsg = ""
-		helpBar = HelpStyle.Render("Tab: switch | 1-9: generators | /: commands | Ctrl+R: saved rolls | ?: help | Ctrl+Q: quit")
+		helpBar = HelpStyle.Render("Tab: switch | 1-9: generators | /: commands | Ctrl+R: rolls | Ctrl+P: portraits | ?: help | Ctrl+Q: quit")
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, title, body, helpBar)
